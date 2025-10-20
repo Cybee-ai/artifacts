@@ -1,0 +1,76 @@
+[Version]
+Signature   = "$Windows NT$"
+Class       = "ActivityMonitor"                        ; Keep as ActivityMonitor
+ClassGuid   = {b86dff51-a31e-4bac-b3cf-e8cfe75c9fc2} ; Activity Monitor GUID
+Provider    = %ManufacturerName%
+DriverVer   = 11/18/2024,1.0.0.1
+CatalogFile = cybeerd.cat
+PnpLockdown = 1
+
+[DestinationDirs]
+DefaultDestDir = 12
+cybeerd_Device_CoInstaller_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+cybeerd.sys = 1
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NTamd64
+
+[Standard.NTamd64]
+%cybeerd.DeviceDesc%=cybeerd_Device, Root\cybeerd
+
+[cybeerd_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+cybeerd.sys
+
+;-------------- Service installation
+[cybeerd_Device.NT.Services]
+AddService = cybeerd,%SPSVCINST_ASSOCSERVICE%, cybeerd_Service_Inst
+
+; -------------- cybeerd driver install sections
+[cybeerd_Service_Inst]
+DisplayName    = %cybeerd.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 0               ; SERVICE_BOOT_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\cybeerd.sys
+LoadOrderGroup = Base
+Dependencies   = FltMgr
+Group          = Base
+AddReg         = cybeerd_Service_AddReg
+
+[cybeerd_Service_AddReg]
+; Minifilter settings
+HKR,"Instances","DefaultInstance",%REG_SZ%,"cybeerd Instance"
+HKR,"Instances\cybeerd Instance","Altitude",%REG_SZ%,"371000"
+HKR,"Instances\cybeerd Instance","Flags",%REG_DWORD%,0x0
+
+; Device interface settings
+HKR,Parameters,RestartOnUpdate,%REG_DWORD%,1
+HKR,Parameters,DebugFlags,%REG_DWORD%,0x0
+HKR,Parameters,DebugLevel,%REG_DWORD%,0x2
+
+; Security settings
+HKR,,Security,,"D:P(A;;GA;;;SY)(A;;GRGWGX;;;BA)(A;;GR;;;WD)"
+HKR,,DeviceCharacteristics,%REG_DWORD%,0x100    ; FILE_DEVICE_SECURE_OPEN
+
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="Cybee.ai"
+DiskName = "CybeerD Installation Disk"
+cybeerd.DeviceDesc = "Cybee.ai Security Driver"
+cybeerd.SVCDESC = "Cybee.ai Security Service"
+REG_SZ = 0x00000000
+REG_DWORD = 0x00010001
+REG_MULTI_SZ = 0x00010000
